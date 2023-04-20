@@ -73,7 +73,9 @@ function flip_direction(dir)
   end
 end
 
-function prevent_construction(event)
+---@param event EventData.on_built_entity | EventData.on_robot_built_entity
+---@param err string
+function prevent_construction(event, err)
   local entity = event.created_entity
   local player = nil
   if event.player_index then
@@ -83,7 +85,7 @@ function prevent_construction(event)
   if event.name == defines.events.on_built_entity
     and player
     and player.can_insert(stack) then
-    player.create_local_flying_text{text="Unable to create multiple z-levels here",create_at_cursor=true}
+    player.create_local_flying_text{text=err,create_at_cursor=true}
     player.insert(stack)
   else
     -- TODO: doesn't work?
@@ -98,6 +100,8 @@ function prevent_construction(event)
   entity.destroy()
 end
 
+local error_no_z_level = "Unable to create multiple z-levels here"
+local error_collision = "Collision with entity in other z-level"
 
 script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity}, function(event)
   local entity = event.created_entity
@@ -110,7 +114,7 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
     local current_level = level_from_surface(entity.surface_index)
 
     if not current_level then
-      prevent_construction(event)
+      prevent_construction(event,error_no_z_level)
       return
     end
     
@@ -119,20 +123,28 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
       surface = game.create_surface("Level " .. current_level - 1, empty_map_gen_settings)
       global.surfaces[current_level - 1] = surface.index
     end
+
+    if not surface.can_place_entity{name="up-belt", position=entity.position} then
+      prevent_construction(event,error_collision)
+      return
+    end
+
     local other_belt = surface.create_entity{
       name="up-belt",
       position=entity.position,
       direction=flip_direction(entity.direction),
       force=entity.force,
     }
-    other_belt.linked_belt_type = "output"
-    entity.connect_linked_belts(other_belt)
+    if other_belt then
+      other_belt.linked_belt_type = "output"
+      entity.connect_linked_belts(other_belt)
+    end
   elseif entity.name == "up-belt" then
     entity.linked_belt_type = "input"
     local current_level = level_from_surface(entity.surface_index)
    
     if not current_level then
-      prevent_construction(event)
+      prevent_construction(event, error_no_z_level)
       return
     end
 
@@ -141,19 +153,27 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
       surface = game.create_surface("Level " .. current_level + 1, scaffold_map_gen_settings)
       global.surfaces[current_level + 1] = surface.index
     end
+
+    if not surface.can_place_entity{name="down-belt", position=entity.position} then
+      prevent_construction(event,error_collision)
+      return
+    end
+
     local other_belt = surface.create_entity{
       name="down-belt",
       position=entity.position,
       direction=flip_direction(entity.direction),
       force=entity.force,
     }
-    other_belt.linked_belt_type = "output"
-    entity.connect_linked_belts(other_belt)
+    if other_belt then
+      other_belt.linked_belt_type = "output"
+      entity.connect_linked_belts(other_belt)
+    end
   elseif entity.name == "up-pole" then
     local current_level = level_from_surface(entity.surface_index)
     
     if not current_level then
-      prevent_construction(event)
+      prevent_construction(event,error_no_z_level)
       return
     end
 
@@ -162,17 +182,25 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
       surface = game.create_surface("Level " .. current_level + 1, scaffold_map_gen_settings)
       global.surfaces[current_level + 1] = surface.index
     end
+
+    if not surface.can_place_entity{name="down-pole", position=entity.position} then
+      prevent_construction(event,error_collision)
+      return
+    end
+
     local other_pole = surface.create_entity{
       name="down-pole",
       position=entity.position,
       force=entity.force,
     }
-    other_pole.connect_neighbour(entity)
+    if other_pole then
+      other_pole.connect_neighbour(entity)
+    end
   elseif entity.name == "down-pole" then
     local current_level = level_from_surface(entity.surface_index)
 
     if not current_level then
-      prevent_construction(event)
+      prevent_construction(event,error_no_z_level)
       return
     end
 
@@ -181,6 +209,12 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
       surface = game.create_surface("Level " .. current_level - 1, scaffold_map_gen_settings)
       global.surfaces[current_level - 1] = surface.index
     end
+
+    if not surface.can_place_entity{name="up-pole", position=entity.position} then
+      prevent_construction(event,error_collision)
+      return
+    end
+
     local other_pole = surface.create_entity{
       name="up-pole",
       position=entity.position,
@@ -190,12 +224,38 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
   end
 end)
 
-script.on_event(defines.events.on_player_mined_entity, function(event)
+script.on_event({defines.events.on_player_mined_entity, defines.events.on_robot_mined_entity}, function(event)
   local entity = event.entity
   if entity.name == "up-belt" or entity.name == "down-belt" then
     local other_belt = entity.linked_belt_neighbour
     if other_belt then
       other_belt.destroy()
+    end
+  elseif entity.name == "up-pole" or entity.name == "down-pole" then
+    local current_level = level_from_surface(entity.surface_index)
+    if not current_level then
+      return
+    end
+
+    local surface
+    if entity.name == "up-pole" then
+      surface = global.surfaces[current_level + 1] and game.get_surface(global.surfaces[current_level + 1])
+    else
+      surface = global.surfaces[current_level - 1] and game.get_surface(global.surfaces[current_level - 1])
+    end
+    if not surface then
+      return
+    end
+
+    local target_entity
+    if entity.name == "up-pole" then 
+      target_entity = "down-pole"
+    else 
+      target_entity = "up-pole"
+    end
+    local other_pole = surface.find_entity(target_entity, entity.position)
+    if other_pole then
+      other_pole.destroy()
     end
   end
 end)
