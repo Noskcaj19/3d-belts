@@ -1,0 +1,18 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 22 April 2023
+  Major Features:
+    - Add variants for each belt speed
+    - New textures
+    - Change default movement control to Control+Shift+Mousewheel
+    - Add control to flip belt direction (defaults to F)
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 21 April 2023
+  Bugfixes:
+    - Prevent overlapping entities and associated crashes
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 20 April 2023
+  Major Features:
+    - Initial release
