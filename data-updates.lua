@@ -19,7 +19,7 @@ local function make_belt(source, name, color, order)
     }
 
     local beltRecipe = table.deepcopy(data.raw["recipe"][source])
-    beltRecipe.enabled = true
+    beltRecipe.enabled = false
     beltRecipe.name = name
     beltRecipe.result = name
 
@@ -108,6 +108,26 @@ for _, variant in pairs({ "", "fast-", "express-" }) do
     data:extend { belt.entity }
 end
 
+for _, variant in pairs({
+    {
+        name = "",
+        tech = "logistics",
+    },
+    {
+        name = "fast-",
+        tech = "logistics-2",
+    },
+    {
+        name = "express-",
+        tech = "logistics-3",
+    }
+
+
+}) do
+    table.insert(data.raw.technology[variant.tech].effects, { type = "unlock-recipe", recipe = variant.name .. "up-belt"})
+    table.insert(data.raw.technology[variant.tech].effects, { type = "unlock-recipe", recipe = variant.name .. "down-belt"})
+end
+
 local function make_pole(source, name)
     local pole = table.deepcopy(data.raw.item[source])
 
@@ -117,7 +137,7 @@ local function make_pole(source, name)
     pole.order = "a[energy]-e[" .. name .. "]"
 
     local poleRecipe = table.deepcopy(data.raw["recipe"][source])
-    poleRecipe.enabled = true
+    poleRecipe.enabled = false
     poleRecipe.name = name
     poleRecipe.result = name
     data:extend { pole, poleRecipe }
@@ -137,6 +157,8 @@ end
 
 make_pole("medium-electric-pole", "up-pole")
 make_pole("medium-electric-pole", "down-pole")
+table.insert(data.raw.technology["electric-energy-distribution-1"].effects, { type = "unlock-recipe", recipe = "up-pole"})
+table.insert(data.raw.technology["electric-energy-distribution-1"].effects, { type = "unlock-recipe", recipe = "down-pole"})
 
 data:extend({
     {
