@@ -130,12 +130,14 @@ script.on_event({ defines.events.on_built_entity, defines.events.on_robot_built_
     end
 
     local surface = global.surfaces[current_level - 1] and game.get_surface(global.surfaces[current_level - 1])
+    local new_surface = false
     if not surface then
+      new_surface = true
       surface = game.create_surface("Level " .. current_level - 1, empty_map_gen_settings)
       global.surfaces[current_level - 1] = surface.index
     end
     local up_belt_name = up_belt_name_from_down(entity.name)
-    if not surface.can_place_entity { name = up_belt_name, position = entity.position } then
+    if not new_surface and not surface.can_place_entity { name = up_belt_name, position = entity.position } then
       prevent_construction(event, error_collision)
       return
     end
@@ -160,13 +162,15 @@ script.on_event({ defines.events.on_built_entity, defines.events.on_robot_built_
     end
 
     local surface = global.surfaces[current_level + 1] and game.get_surface(global.surfaces[current_level + 1])
+    local new_surface = false
     if not surface then
+      new_surface = true
       surface = game.create_surface("Level " .. current_level + 1, scaffold_map_gen_settings)
       global.surfaces[current_level + 1] = surface.index
     end
 
     local down_belt_name = down_belt_name_from_up(entity.name)
-    if not surface.can_place_entity { name = down_belt_name, position = entity.position } then
+    if not new_surface and not surface.can_place_entity { name = down_belt_name, position = entity.position } then
       prevent_construction(event, error_collision)
       return
     end
@@ -190,12 +194,14 @@ script.on_event({ defines.events.on_built_entity, defines.events.on_robot_built_
     end
 
     local surface = global.surfaces[current_level + 1] and game.get_surface(global.surfaces[current_level + 1])
+    local new_surface = false
     if not surface then
+      new_surface = true
       surface = game.create_surface("Level " .. current_level + 1, scaffold_map_gen_settings)
       global.surfaces[current_level + 1] = surface.index
     end
 
-    if not surface.can_place_entity { name = "down-pole", position = entity.position } then
+    if not new_surface and not surface.can_place_entity { name = "down-pole", position = entity.position } then
       prevent_construction(event, error_collision)
       return
     end
@@ -217,12 +223,14 @@ script.on_event({ defines.events.on_built_entity, defines.events.on_robot_built_
     end
 
     local surface = global.surfaces[current_level - 1] and game.get_surface(global.surfaces[current_level - 1])
+    local new_surface = false
     if not surface then
+      new_surface = true
       surface = game.create_surface("Level " .. current_level - 1, scaffold_map_gen_settings)
       global.surfaces[current_level - 1] = surface.index
     end
 
-    if not surface.can_place_entity { name = "up-pole", position = entity.position } then
+    if not new_surface and not surface.can_place_entity { name = "up-pole", position = entity.position } then
       prevent_construction(event, error_collision)
       return
     end
