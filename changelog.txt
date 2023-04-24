@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.4
+Date: 23 April 2023
+  Bugfixes:
+    - Fix building ramp into ungenerated levels
+    - Properly gate ramps behind research
+---------------------------------------------------------------------------------------------------
 Version: 0.0.3
 Date: 22 April 2023
   Major Features:
