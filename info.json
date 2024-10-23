@@ -5,7 +5,7 @@
     "author": "Noskcaj19",
     "contact": "",
     "homepage": "",
-    "factorio_version": "1.1",
+    "factorio_version": "2.0",
     "dependencies": ["base"],
     "description": "Thinking in 3D"
 }

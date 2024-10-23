@@ -21,7 +21,9 @@ local function make_belt(source, name, color, order)
     local beltRecipe = table.deepcopy(data.raw["recipe"][source])
     beltRecipe.enabled = false
     beltRecipe.name = name
-    beltRecipe.result = name
+    beltRecipe.results = {
+        {type="item", name=name, amount=1}
+    }
 
 
     local beltEntity = table.deepcopy(data.raw["underground-belt"][source])
@@ -45,7 +47,6 @@ local function make_belt(source, name, color, order)
         priority = "extra-high",
         y = 192,
     }
-    colorMaskSprite.hr_version = table.deepcopy(colorMaskSprite)
     local colorMaskSpriteSide = {
         filename = "__3d-belts__/graphics/entity/hr-underground-belt-structure-mask.png",
         tint = color,
@@ -55,7 +56,6 @@ local function make_belt(source, name, color, order)
         priority = "extra-high",
         y = 384,
     }
-    colorMaskSpriteSide.hr_version = table.deepcopy(colorMaskSpriteSide)
 
     local directions = {
         {
@@ -139,7 +139,9 @@ local function make_pole(source, name)
     local poleRecipe = table.deepcopy(data.raw["recipe"][source])
     poleRecipe.enabled = false
     poleRecipe.name = name
-    poleRecipe.result = name
+    poleRecipe.results = {
+        {type="item", name=name, amount=1}
+    }
     data:extend { pole, poleRecipe }
 
 
@@ -148,9 +150,7 @@ local function make_pole(source, name)
     poleEntity.minable.result = name
     poleEntity.next_upgrade = nil
     local poleSheet = "__3d-belts__/graphics/entity/" .. name .. "/" .. name .. ".png"
-    local poleSheetHr = "__3d-belts__/graphics/entity/" .. name .. "/hr-" .. name .. ".png"
     poleEntity.pictures.layers[1].filename = poleSheet
-    poleEntity.pictures.layers[1].hr_version.filename = poleSheetHr
     data:extend { poleEntity }
 end
 
